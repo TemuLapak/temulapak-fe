@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
+import { Suspense } from 'react';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
 import { BRAND_INFO } from '@/constants/navigation';
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
   description: BRAND_INFO.description,
 };
 
-export default async function RootLayout({
+async function AppProviders({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -32,17 +33,29 @@ export default async function RootLayout({
   const initialEvents = await getFeaturedEvents();
 
   return (
+    <AuthProvider>
+      <LanguageProvider initialEvents={initialEvents}>
+        <AlertProvider>
+          <Navbar />
+          <main className="flex-1 flex flex-col">{children}</main>
+          <Footer />
+        </AlertProvider>
+      </LanguageProvider>
+    </AuthProvider>
+  );
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
     <html lang="id" className={plusJakartaSans.variable}>
       <body className="min-h-screen flex flex-col">
-        <AuthProvider>
-          <LanguageProvider initialEvents={initialEvents}>
-            <AlertProvider>
-              <Navbar />
-              <main className="flex-1 flex flex-col">{children}</main>
-              <Footer />
-            </AlertProvider>
-          </LanguageProvider>
-        </AuthProvider>
+        <Suspense fallback={null}>
+          <AppProviders>{children}</AppProviders>
+        </Suspense>
       </body>
     </html>
   );
