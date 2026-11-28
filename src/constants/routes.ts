@@ -7,6 +7,7 @@ export const APP_ROUTES = {
   EVENT_SECTION: '/#event',
   LOGIN: '/login',
   REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
   REFUND_MOU: '/legal/refund-mou',
   PRIVACY: '/legal/privacy',
   CONTACT: '/contact',

@@ -33,6 +33,10 @@ export const UI_TERM_OVERRIDES: Partial<
     Keamanan: 'Safety & Trust',
     'Dashboard Lapak': 'Booth Dashboard',
     sisa: 'left',
+    'Masuk Sekarang': 'Sign In Now',
+    'Daftar Gratis': 'Sign Up Free',
+    'Masuk di sini': 'Sign in here',
+    'Kembali ke Halaman Masuk': 'Back to Sign In',
   },
 };
 
