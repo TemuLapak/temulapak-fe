@@ -26,6 +26,11 @@ export function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const isAuthPage =
+    pathname === APP_ROUTES.LOGIN ||
+    pathname === APP_ROUTES.REGISTER ||
+    pathname === APP_ROUTES.FORGOT_PASSWORD;
+
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -124,7 +129,11 @@ export function Navbar() {
                 )}
               </div>
             ) : (
-              <ActionButton href={APP_ROUTES.LOGIN} variant="teal" compact>
+              <ActionButton
+                href={APP_ROUTES.LOGIN}
+                variant={isAuthPage ? 'outline' : 'teal'}
+                compact
+              >
                 {dictionary.nav.loginButton}
               </ActionButton>
             )}
