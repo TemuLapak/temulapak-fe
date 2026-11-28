@@ -11,6 +11,7 @@ import {
 import {
   DEFAULT_LOCALE,
   INTERNAL_TRANSLATE_ENDPOINT,
+  UI_TERM_OVERRIDES
 } from '@/constants/i18n';
 import { FOOTER_LINKS, MAIN_NAV_ITEMS } from '@/constants/navigation';
 import { BazaarEvent } from '@/types/event';
@@ -71,6 +72,9 @@ export function buildDefaultDictionary(
     footer: {
       links: FOOTER_LINKS.map(({ id, label }) => ({ id, label })),
     },
+    eventCard: {
+      remainingLabel: 'sisa',
+    },
     events: events.map(({ id, title, theme, dateLabel }) => ({
       id,
       title,
@@ -118,6 +122,7 @@ function flattenDictionary(dict: LandingDictionary): string[] {
     dict.bottomCta.description,
     dict.bottomCta.ctaLabel,
     ...dict.footer.links.map((link) => link.label),
+    dict.eventCard.remainingLabel,
     ...dict.events.flatMap((event) => [
       event.title,
       event.theme,
@@ -191,6 +196,9 @@ function unflattenDictionary(
     footer: {
       links: base.footer.links.map((link) => ({ id: link.id, label: next() })),
     },
+    eventCard: {
+      remainingLabel: next(),
+    },
     events: base.events.map((event) => ({
       id: event.id,
       title: next(),
@@ -200,17 +208,45 @@ function unflattenDictionary(
   };
 }
 
+export interface TranslatedDictionaryResult {
+  dictionary: LandingDictionary;
+  isFallback: boolean;
+}
+
 export async function translateLandingDictionary(
   baseDictionary: LandingDictionary,
   targetLang: SupportedLocale
-): Promise<LandingDictionary> {
+): Promise<TranslatedDictionaryResult> {
   if (targetLang === DEFAULT_LOCALE) {
-    return baseDictionary;
+    return { dictionary: baseDictionary, isFallback: false };
   }
 
   const flatTexts = flattenDictionary(baseDictionary);
+  const overrides = UI_TERM_OVERRIDES[targetLang] ?? {};
+
+  const pendingIndices: number[] = [];
+  const textsToTranslate: string[] = [];
+  const mergedTexts: string[] = new Array<string>(flatTexts.length);
+
+  flatTexts.forEach((text, index) => {
+    const overridden = overrides[text];
+    if (overridden !== undefined) {
+      mergedTexts[index] = overridden;
+    } else {
+      pendingIndices.push(index);
+      textsToTranslate.push(text);
+    }
+  });
+
+  if (textsToTranslate.length === 0) {
+    return {
+      dictionary: unflattenDictionary(baseDictionary, mergedTexts),
+      isFallback: false,
+    };
+  }
+
   const payload: TranslateRequestPayload = {
-    texts: flatTexts,
+    texts: textsToTranslate,
     sourceLang: DEFAULT_LOCALE,
     targetLang,
   };
@@ -222,13 +258,24 @@ export async function translateLandingDictionary(
   });
 
   if (!response.ok) {
-    return baseDictionary;
+    return { dictionary: baseDictionary, isFallback: true };
   }
 
   const data = (await response.json()) as TranslateResponsePayload;
-  if (!Array.isArray(data.translations) || data.translations.length !== flatTexts.length) {
-    return baseDictionary;
+  if (
+    data.source === 'fallback' ||
+    !Array.isArray(data.translations) ||
+    data.translations.length !== textsToTranslate.length
+  ) {
+    return { dictionary: baseDictionary, isFallback: true };
   }
 
-  return unflattenDictionary(baseDictionary, data.translations);
+  pendingIndices.forEach((originalIndex, translatedIndex) => {
+    mergedTexts[originalIndex] = data.translations[translatedIndex];
+  });
+
+  return {
+    dictionary: unflattenDictionary(baseDictionary, mergedTexts),
+    isFallback: false,
+  };
 }

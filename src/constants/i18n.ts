@@ -21,6 +21,25 @@ export const SUPPORTED_LOCALES: readonly LocaleOption[] = [
   },
 ] as const;
 
+export const UI_TERM_OVERRIDES: Partial<
+  Record<SupportedLocale, Record<string, string>>
+> = {
+  en: {
+    Masuk: 'Sign In',
+    Keluar: 'Log Out',
+    Beranda: 'Home',
+    'Jelajah Event': 'Explore Events',
+    'Pasang Event': 'Host an Event',
+    Keamanan: 'Safety & Trust',
+    'Dashboard Lapak': 'Booth Dashboard',
+    sisa: 'left',
+    'Masuk Sekarang': 'Sign In Now',
+    'Daftar Gratis': 'Sign Up Free',
+    'Masuk di sini': 'Sign in here',
+    'Kembali ke Halaman Masuk': 'Back to Sign In',
+  },
+};
+
 export const GOOGLE_TRANSLATE_CONFIG = {
   CLOUD_V2_API_URL: 'https://translation.googleapis.com/language/translate/v2',
   GTX_API_URL: 'https://translate.googleapis.com/translate_a/single',

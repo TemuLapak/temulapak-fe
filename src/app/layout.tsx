@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
 import { BRAND_INFO } from '@/constants/navigation';
+import { AlertProvider } from '@/context/AlertContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { getFeaturedEvents } from '@/lib/api/events';
@@ -32,12 +33,14 @@ export default async function RootLayout({
 
   return (
     <html lang="id" className={plusJakartaSans.variable}>
-      <body>
+      <body className="min-h-screen flex flex-col">
         <AuthProvider>
           <LanguageProvider initialEvents={initialEvents}>
-            <Navbar />
-            <main>{children}</main>
-            <Footer />
+            <AlertProvider>
+              <Navbar />
+              <main className="flex-1 flex flex-col">{children}</main>
+              <Footer />
+            </AlertProvider>
           </LanguageProvider>
         </AuthProvider>
       </body>

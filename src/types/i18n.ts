@@ -69,5 +69,8 @@ export interface LandingDictionary {
   footer: {
     links: Pick<FooterLink, 'id' | 'label'>[];
   };
+  eventCard: {
+    remainingLabel: string;
+  };
   events: Pick<BazaarEvent, 'id' | 'title' | 'theme' | 'dateLabel'>[];
 }

@@ -8,7 +8,7 @@ export function Footer() {
   const { dictionary } = useLanguage();
 
   return (
-    <footer className="border-t-2 border-[#1F2937] py-7 bg-white text-center">
+    <footer className="mt-auto relative z-10 border-t-2 border-[#1F2937] py-7 bg-white text-center">
       <strong className="text-[#1F2937] font-extrabold">
         {BRAND_INFO.name}
       </strong>
