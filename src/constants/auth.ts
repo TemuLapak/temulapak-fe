@@ -8,13 +8,27 @@ import {
 export const AUTH_API_ENDPOINTS = {
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
+  GOOGLE_URL: '/auth/google',
+  GOOGLE_CALLBACK: '/auth/google/callback',
   FORGOT_PASSWORD: '/auth/forgot-password',
+  VERIFY_RECOVERY: '/auth/verify-recovery',
+  RESET_PASSWORD: '/auth/reset-password',
 } as const;
 
 export const AUTH_STORAGE_KEYS = {
   USER: 'temulapak_user',
   ACCESS_TOKEN: 'temulapak_access_token',
   REFRESH_TOKEN: 'temulapak_refresh_token',
+} as const;
+
+export const AUTH_URL_PARAMS = {
+  ROLE: 'role',
+  REDIRECT: 'redirect',
+  TOKEN_HASH: 'token_hash',
+  ACCESS_TOKEN: 'access_token',
+  REFRESH_TOKEN: 'refresh_token',
+  TYPE: 'type',
+  ERROR_DESCRIPTION: 'error_description',
 } as const;
 
 export const AUTH_VALIDATION_RULES = {
@@ -47,6 +61,7 @@ export const DEFAULT_AUTH_DICTIONARY: AuthDictionary = {
     hidePasswordLabel: 'Sembunyikan kata sandi',
     processingLabel: 'Memproses...',
     backToHomeLabel: 'Kembali ke Beranda',
+    orDividerLabel: 'atau lanjutkan dengan',
   },
   login: {
     badge: 'Selamat Datang Kembali',
@@ -56,6 +71,8 @@ export const DEFAULT_AUTH_DICTIONARY: AuthDictionary = {
       'Kelola pengajuan booth bazar, pantau jadwal event, dan transaksi aman dalam satu tempat.',
     forgotPasswordLink: 'Lupa kata sandi?',
     submitButton: 'Masuk Sekarang',
+    googleButton: 'Masuk dengan Google',
+    googleRedirectingLabel: 'Menghubungkan ke Google...',
     noAccountPrompt: 'Belum punya akun TemuLapak?',
     registerLink: 'Daftar Gratis',
   },
@@ -89,6 +106,8 @@ export const DEFAULT_AUTH_DICTIONARY: AuthDictionary = {
     confirmPasswordPlaceholder: 'Ulangi kata sandi',
     passwordHint: 'Gunakan minimal 8 karakter kombinasi huruf dan angka.',
     submitButton: 'Buat Akun TemuLapak',
+    googleButton: 'Daftar dengan Google',
+    googleRedirectingLabel: 'Menghubungkan ke Google...',
     hasAccountPrompt: 'Sudah punya akun?',
     loginLink: 'Masuk di sini',
     successMessage: 'Akun berhasil dibuat! Mengarahkan ke halaman utama...',
@@ -98,12 +117,43 @@ export const DEFAULT_AUTH_DICTIONARY: AuthDictionary = {
     titleHighlight: 'Lupa',
     titleMain: 'Kata Sandi?',
     subtitle:
-      'Masukkan email terdaftar akunmu. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.',
+      'Masukkan email terdaftar akunmu. Kami akan mengirimkan tautan konfirmasi untuk mengatur ulang kata sandi.',
     submitButton: 'Kirim Tautan Pemulihan',
     backToLoginLink: 'Kembali ke Halaman Masuk',
-    successTitle: 'Tautan Terkirim!',
+    successTitle: 'Email Konfirmasi Terkirim!',
     successDescription:
-      'Silakan periksa kotak masuk atau folder spam email kamu untuk melanjutkan pengaturan ulang kata sandi.',
+      'Silakan periksa kotak masuk atau folder spam email kamu dan klik tombol konfirmasi untuk melanjutkan pengaturan ulang kata sandi.',
+  },
+  resetPassword: {
+    badge: 'Kata Sandi Baru',
+    titleHighlight: 'Atur Ulang',
+    titleMain: 'Kata Sandi',
+    subtitle:
+      'Tautan konfirmasi email terverifikasi. Silakan buat kata sandi baru untuk akun TemuLapak kamu.',
+    verifyingLabel: 'Memverifikasi tautan konfirmasi email...',
+    newPasswordLabel: 'Kata Sandi Baru',
+    newPasswordPlaceholder: 'Minimal 8 karakter',
+    confirmPasswordLabel: 'Konfirmasi Kata Sandi Baru',
+    confirmPasswordPlaceholder: 'Ulangi kata sandi baru',
+    passwordHint: 'Gunakan minimal 8 karakter kombinasi huruf dan angka.',
+    submitButton: 'Simpan Kata Sandi Baru',
+    successMessage:
+      'Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru.',
+    invalidTokenTitle: 'Tautan Tidak Valid atau Kedaluwarsa',
+    invalidTokenDescription:
+      'Tautan konfirmasi pemulihan kata sandi sudah tidak berlaku. Silakan ajukan ulang permintaan lupa kata sandi.',
+    requestNewLinkLabel: 'Minta Tautan Baru',
+  },
+  googleCallback: {
+    badge: 'Autentikasi Google',
+    titleHighlight: 'Menyinkronkan',
+    titleMain: 'Akun Google',
+    subtitle: 'Mohon tunggu sebentar, kami sedang menyiapkan sesi akunmu.',
+    verifyingMessage: 'Memverifikasi sesi Google dengan server TemuLapak...',
+    successMessage: 'Berhasil masuk dengan Google!',
+    missingTokenError:
+      'Token autentikasi Google tidak ditemukan pada tautan callback.',
+    backToLoginLabel: 'Kembali ke Halaman Masuk',
   },
   validation: {
     emailRequired: 'Alamat email wajib diisi.',

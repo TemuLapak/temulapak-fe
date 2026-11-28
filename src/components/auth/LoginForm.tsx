@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { FormField } from '@/components/ui/FormField';
-import { AUTH_VALIDATION_RULES } from '@/constants/auth';
+import { GoogleAuthButton } from '@/components/ui/GoogleAuthButton';
+import { AUTH_URL_PARAMS, AUTH_VALIDATION_RULES } from '@/constants/auth';
 import { APP_ROUTES } from '@/constants/routes';
 import { useAlert } from '@/context/AlertContext';
 import { useAuth } from '@/context/AuthContext';
 import { useAuthDictionary } from '@/hooks/useAuthDictionary';
+import { fetchGoogleAuthUrl } from '@/services/auth/authService';
 import { AuthShell } from './AuthShell';
 
 interface LoginFieldErrors {
@@ -27,6 +29,9 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const isBusy = isSubmitting || isGoogleLoading;
 
   function validate(): boolean {
     const errors: LoginFieldErrors = {};
@@ -55,7 +60,7 @@ export function LoginForm() {
       const session = await login({ email: email.trim(), password });
       alert.success(session.user.name, dict.login.badge);
 
-      const redirectParam = searchParams.get('redirect');
+      const redirectParam = searchParams.get(AUTH_URL_PARAMS.REDIRECT);
       const safeTarget =
         redirectParam && redirectParam.startsWith('/')
           ? redirectParam
@@ -69,6 +74,19 @@ export function LoginForm() {
       );
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleGoogleLogin() {
+    setIsGoogleLoading(true);
+    try {
+      const oauthUrl = await fetchGoogleAuthUrl();
+      window.location.assign(oauthUrl);
+    } catch (err) {
+      alert.error(
+        err instanceof Error ? err.message : dict.validation.genericError
+      );
+      setIsGoogleLoading(false);
     }
   }
 
@@ -89,7 +107,7 @@ export function LoginForm() {
           placeholder={dict.shared.emailPlaceholder}
           value={email}
           error={fieldErrors.email}
-          disabled={isSubmitting}
+          disabled={isBusy}
           onChange={(e) => {
             setEmail(e.target.value);
             if (fieldErrors.email) {
@@ -106,7 +124,7 @@ export function LoginForm() {
           placeholder={dict.shared.passwordPlaceholder}
           value={password}
           error={fieldErrors.password}
-          disabled={isSubmitting}
+          disabled={isBusy}
           showPasswordToggle
           showPasswordAriaLabel={dict.shared.showPasswordLabel}
           hidePasswordAriaLabel={dict.shared.hidePasswordLabel}
@@ -128,11 +146,20 @@ export function LoginForm() {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isBusy}
           className="mt-2 w-full min-h-[48px] px-7 rounded-full font-extrabold text-[15px] bg-[#F97316] text-[#1F2937] border-2 border-[#1F2937] hover:bg-[#FB923C] transition-colors cursor-pointer disabled:opacity-60"
         >
           {isSubmitting ? dict.shared.processingLabel : dict.login.submitButton}
         </button>
+
+        <GoogleAuthButton
+          label={dict.login.googleButton}
+          loadingLabel={dict.login.googleRedirectingLabel}
+          dividerLabel={dict.shared.orDividerLabel}
+          isLoading={isGoogleLoading}
+          disabled={isBusy}
+          onClick={handleGoogleLogin}
+        />
 
         <p className="text-center text-[14px] text-[#4B5563] mt-2 mb-0">
           {dict.login.noAccountPrompt}{' '}
