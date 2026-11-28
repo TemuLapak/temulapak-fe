@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { FormField } from '@/components/ui/FormField';
+import { GoogleAuthButton } from '@/components/ui/GoogleAuthButton';
 import { RoleSelector } from '@/components/ui/RoleSelector';
 import {
   AUTH_VALIDATION_RULES,
@@ -13,6 +14,7 @@ import { APP_ROUTES } from '@/constants/routes';
 import { useAlert } from '@/context/AlertContext';
 import { useAuth } from '@/context/AuthContext';
 import { useAuthDictionary } from '@/hooks/useAuthDictionary';
+import { fetchGoogleAuthUrl } from '@/services/auth/authService';
 import { SelectableRegisterRole } from '@/types/auth';
 import { AuthShell } from './AuthShell';
 
@@ -39,6 +41,9 @@ export function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<RegisterFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const isBusy = isSubmitting || isGoogleLoading;
 
   function validate(): boolean {
     const errors: RegisterFieldErrors = {};
@@ -100,6 +105,19 @@ export function RegisterForm() {
     }
   }
 
+  async function handleGoogleRegister() {
+    setIsGoogleLoading(true);
+    try {
+      const oauthUrl = await fetchGoogleAuthUrl(role);
+      window.location.assign(oauthUrl);
+    } catch (err) {
+      alert.error(
+        err instanceof Error ? err.message : dict.validation.genericError
+      );
+      setIsGoogleLoading(false);
+    }
+  }
+
   return (
     <AuthShell
       badge={dict.register.badge}
@@ -115,7 +133,7 @@ export function RegisterForm() {
           options={dict.register.roles}
           value={role}
           onChange={setRole}
-          disabled={isSubmitting}
+          disabled={isBusy}
         />
 
         <FormField
@@ -126,7 +144,7 @@ export function RegisterForm() {
           placeholder={dict.register.namePlaceholder}
           value={name}
           error={fieldErrors.name}
-          disabled={isSubmitting}
+          disabled={isBusy}
           onChange={(e) => {
             setName(e.target.value);
             if (fieldErrors.name) {
@@ -144,7 +162,7 @@ export function RegisterForm() {
             placeholder={dict.shared.emailPlaceholder}
             value={email}
             error={fieldErrors.email}
-            disabled={isSubmitting}
+            disabled={isBusy}
             onChange={(e) => {
               setEmail(e.target.value);
               if (fieldErrors.email) {
@@ -161,7 +179,7 @@ export function RegisterForm() {
             optionalTag={dict.register.phoneOptionalHint}
             placeholder={dict.register.phonePlaceholder}
             value={phone}
-            disabled={isSubmitting}
+            disabled={isBusy}
             onChange={(e) => setPhone(e.target.value)}
           />
         </div>
@@ -175,7 +193,7 @@ export function RegisterForm() {
           helperText={dict.register.passwordHint}
           value={password}
           error={fieldErrors.password}
-          disabled={isSubmitting}
+          disabled={isBusy}
           showPasswordToggle
           showPasswordAriaLabel={dict.shared.showPasswordLabel}
           hidePasswordAriaLabel={dict.shared.hidePasswordLabel}
@@ -195,7 +213,7 @@ export function RegisterForm() {
           placeholder={dict.register.confirmPasswordPlaceholder}
           value={confirmPassword}
           error={fieldErrors.confirmPassword}
-          disabled={isSubmitting}
+          disabled={isBusy}
           showPasswordToggle
           showPasswordAriaLabel={dict.shared.showPasswordLabel}
           hidePasswordAriaLabel={dict.shared.hidePasswordLabel}
@@ -212,13 +230,22 @@ export function RegisterForm() {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isBusy}
           className="mt-2 w-full min-h-[48px] px-7 rounded-full font-extrabold text-[15px] bg-[#0F766E] text-white border-2 border-[#1F2937] hover:bg-[#115E59] transition-colors cursor-pointer disabled:opacity-60"
         >
           {isSubmitting
             ? dict.shared.processingLabel
             : dict.register.submitButton}
         </button>
+
+        <GoogleAuthButton
+          label={dict.register.googleButton}
+          loadingLabel={dict.register.googleRedirectingLabel}
+          dividerLabel={dict.shared.orDividerLabel}
+          isLoading={isGoogleLoading}
+          disabled={isBusy}
+          onClick={handleGoogleRegister}
+        />
 
         <p className="text-center text-[14px] text-[#4B5563] mt-2 mb-0">
           {dict.register.hasAccountPrompt}{' '}
