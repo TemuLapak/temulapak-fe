@@ -32,11 +32,11 @@ export default async function RootLayout({
 
   return (
     <html lang="id" className={plusJakartaSans.variable}>
-      <body>
+      <body className="min-h-screen flex flex-col">
         <AuthProvider>
           <LanguageProvider initialEvents={initialEvents}>
             <Navbar />
-            <main>{children}</main>
+            <main className="flex-1 flex flex-col">{children}</main>
             <Footer />
           </LanguageProvider>
         </AuthProvider>
