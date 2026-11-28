@@ -8,6 +8,7 @@ export const APP_ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
+  AUTH_CALLBACK: '/callback',
   REFUND_MOU: '/legal/refund-mou',
   PRIVACY: '/legal/privacy',
   CONTACT: '/contact',
