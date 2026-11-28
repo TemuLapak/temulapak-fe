@@ -11,15 +11,16 @@ import {
 } from 'react';
 import { AUTH_STORAGE_KEYS } from '@/constants/auth';
 import {
-  loginWithCredentials,
-  registerAccount,
+  completeGoogleAuth,
+  loginUser,
+  registerUser,
 } from '@/services/auth/authService';
 import {
   AuthSession,
   AuthUser,
+  GoogleCallbackPayload,
   LoginPayload,
   RegisterPayload,
-  AuthWatermarkItem
 } from '@/types/auth';
 
 interface AuthContextValue {
@@ -28,77 +29,76 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<AuthSession>;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
+  completeGoogleLogin: (payload: GoogleCallbackPayload) => Promise<AuthSession>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function persistSession(session: AuthSession): void {
+  localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(session.user));
+  localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, session.accessToken);
+  if (session.refreshToken) {
+    localStorage.setItem(
+      AUTH_STORAGE_KEYS.REFRESH_TOKEN,
+      session.refreshToken
+    );
+  } else {
+    localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     try {
-      const storedUser = window.localStorage.getItem(AUTH_STORAGE_KEYS.USER);
-      const storedToken = window.localStorage.getItem(
-        AUTH_STORAGE_KEYS.ACCESS_TOKEN
-      );
-
+      const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
+      const storedToken = localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
       if (storedUser && storedToken) {
         setUser(JSON.parse(storedUser) as AuthUser);
         setAccessToken(storedToken);
       }
     } catch {
-      window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-      window.localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
-      window.localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+      localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+      localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const persistSession = useCallback((session: AuthSession) => {
+  const login = useCallback(async (payload: LoginPayload) => {
+    const session = await loginUser(payload);
+    persistSession(session);
     setUser(session.user);
     setAccessToken(session.accessToken);
-    window.localStorage.setItem(
-      AUTH_STORAGE_KEYS.USER,
-      JSON.stringify(session.user)
-    );
-    window.localStorage.setItem(
-      AUTH_STORAGE_KEYS.ACCESS_TOKEN,
-      session.accessToken
-    );
-    if (session.refreshToken) {
-      window.localStorage.setItem(
-        AUTH_STORAGE_KEYS.REFRESH_TOKEN,
-        session.refreshToken
-      );
-    }
+    return session;
   }, []);
 
-  const login = useCallback(
-    async (payload: LoginPayload): Promise<AuthSession> => {
-      const session = await loginWithCredentials(payload);
-      persistSession(session);
-      return session;
-    },
-    [persistSession]
-  );
+  const register = useCallback(async (payload: RegisterPayload) => {
+    return registerUser(payload);
+  }, []);
 
-  const register = useCallback(
-    async (payload: RegisterPayload): Promise<AuthUser> => {
-      return registerAccount(payload);
+  const completeGoogleLogin = useCallback(
+    async (payload: GoogleCallbackPayload) => {
+      const session = await completeGoogleAuth(payload);
+      persistSession(session);
+      setUser(session.user);
+      setAccessToken(session.accessToken);
+      return session;
     },
     []
   );
 
   const logout = useCallback(() => {
+    localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+    localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
     setUser(null);
     setAccessToken(null);
-    window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-    window.localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
-    window.localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
   }, []);
 
   const value = useMemo(
@@ -108,9 +108,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       register,
+      completeGoogleLogin,
       logout,
     }),
-    [user, accessToken, isLoading, login, register, logout]
+    [user, accessToken, isLoading, login, register, completeGoogleLogin, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -123,10 +124,3 @@ export function useAuth(): AuthContextValue {
   }
   return context;
 }
-
-export const AUTH_WATERMARKS: readonly AuthWatermarkItem[] = [
-  { id: 'auth-wm-1', top: '8%', left: '4%', sizePx: 88, rotateDeg: -16 },
-  { id: 'auth-wm-2', top: '14%', right: '5%', sizePx: 110, rotateDeg: 20 },
-  { id: 'auth-wm-3', bottom: '10%', left: '6%', sizePx: 96, rotateDeg: 18 },
-  { id: 'auth-wm-4', bottom: '8%', right: '5%', sizePx: 82, rotateDeg: -22 },
-] as const;
