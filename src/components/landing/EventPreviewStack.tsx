@@ -1,6 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import { Chip } from '@/components/ui/chip';
 import { BazaarEvent } from '@/types/event';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface EventPreviewStackProps {
   events: BazaarEvent[];
@@ -14,6 +17,7 @@ const CARD_POSITIONS = [
 
 export function EventPreviewStack({ events }: EventPreviewStackProps) {
   const visibleEvents = events.slice(0, 3);
+  const { dictionary } = useLanguage();
 
   return (
     <div className="tl-fade-in relative min-h-[340px]">
@@ -37,7 +41,7 @@ export function EventPreviewStack({ events }: EventPreviewStackProps) {
             <strong className="block mt-1 font-extrabold">{event.title}</strong>
             <small className="text-[#4B5563]">
               {isLastCard
-                ? `Booth ${event.boothPriceFormatted} · sisa ${event.remainingQuota}`
+                ? `Booth ${event.boothPriceFormatted} · ${dictionary.eventCard.remainingLabel} ${event.remainingQuota}`
                 : `${event.city} · ${event.dateLabel}`}
             </small>
           </Link>

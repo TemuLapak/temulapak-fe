@@ -72,12 +72,14 @@ export function LanguageProvider({
 
       setIsTranslating(true);
       try {
-        const translated = await translateLandingDictionary(
+        const result = await translateLandingDictionary(
           baseDictionary,
           nextLocale
         );
-        clientCacheRef.current.set(nextLocale, translated);
-        setDictionary(translated);
+        if (!result.isFallback) {
+          clientCacheRef.current.set(nextLocale, result.dictionary);
+        }
+        setDictionary(result.dictionary);
       } finally {
         setIsTranslating(false);
       }
