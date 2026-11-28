@@ -1,7 +1,7 @@
 import { FALLBACK_FEATURED_EVENTS } from '@/constants/landing';
 import { BazaarEvent } from '@/types/event';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export async function getFeaturedEvents(): Promise<BazaarEvent[]> {
   if (!API_BASE_URL) {
