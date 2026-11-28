@@ -22,9 +22,16 @@ export interface TranslateRequestPayload {
   sourceLang?: SupportedLocale;
 }
 
+export type TranslationProviderSource =
+  | 'google-cloud-v2'
+  | 'google-gtx'
+  | 'identity'
+  | 'fallback';
+
 export interface TranslateResponsePayload {
   translations: string[];
-  source: 'google-api' | 'identity' | 'fallback';
+  source: TranslationProviderSource;
+  errorMessage?: string;
 }
 
 export interface LandingDictionary {

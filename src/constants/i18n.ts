@@ -1,7 +1,9 @@
 import { LocaleOption, SupportedLocale } from '@/types/i18n';
 
 export const DEFAULT_LOCALE: SupportedLocale = 'id';
+
 export const LOCALE_STORAGE_KEY = 'temulapak_locale';
+
 export const INTERNAL_TRANSLATE_ENDPOINT = '/api/translate';
 
 export const SUPPORTED_LOCALES: readonly LocaleOption[] = [
@@ -20,7 +22,9 @@ export const SUPPORTED_LOCALES: readonly LocaleOption[] = [
 ] as const;
 
 export const GOOGLE_TRANSLATE_CONFIG = {
-  DEFAULT_API_URL: 'https://translation.googleapis.com/language/translate/v2',
+  CLOUD_V2_API_URL: 'https://translation.googleapis.com/language/translate/v2',
+  GTX_API_URL: 'https://translate.googleapis.com/translate_a/single',
+  GTX_CLIENT: 'gtx',
   FORMAT: 'text',
   MAX_BATCH_SIZE: 50,
 } as const;

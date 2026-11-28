@@ -6,7 +6,7 @@ import {
   TranslateResponsePayload,
 } from '@/types/i18n';
 
-const serverTranslationCache = new Map<string, string[]>();
+const serverTranslationCache = new Map<string, TranslateResponsePayload>();
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,42 +32,39 @@ export async function POST(request: NextRequest) {
     }
 
     if (targetLang === sourceLang) {
-      const identityPayload: TranslateResponsePayload = {
-        translations: texts,
-        source: 'identity',
-      };
-      return NextResponse.json(identityPayload, { status: 200 });
+      return NextResponse.json(
+        {
+          translations: texts,
+          source: 'identity',
+        } satisfies TranslateResponsePayload,
+        { status: 200 }
+      );
     }
 
     const cacheKey = `${sourceLang}:${targetLang}:${JSON.stringify(texts)}`;
     const cached = serverTranslationCache.get(cacheKey);
     if (cached) {
-      return NextResponse.json(
-        { translations: cached, source: 'google-api' } satisfies TranslateResponsePayload,
-        { status: 200 }
-      );
+      return NextResponse.json(cached, { status: 200 });
     }
 
-    const translatedTexts = await requestGoogleTranslation(
-      texts,
-      targetLang,
-      sourceLang
-    );
-    serverTranslationCache.set(cacheKey, translatedTexts);
+    const result = await requestGoogleTranslation(texts, targetLang, sourceLang);
+    const responsePayload: TranslateResponsePayload = {
+      translations: result.translations,
+      source: result.source,
+    };
 
-    return NextResponse.json(
-      {
-        translations: translatedTexts,
-        source: 'google-api',
-      } satisfies TranslateResponsePayload,
-      { status: 200 }
-    );
+    serverTranslationCache.set(cacheKey, responsePayload);
+    return NextResponse.json(responsePayload, { status: 200 });
   } catch (error) {
-    console.error('[Translate API Fallback]:', error);
+    const message =
+      error instanceof Error ? error.message : 'Unknown translation error';
+    console.error('[Translate API Error]:', message);
+
     return NextResponse.json(
       {
         translations: [],
         source: 'fallback',
+        errorMessage: message,
       } satisfies TranslateResponsePayload,
       { status: 200 }
     );
